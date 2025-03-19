@@ -54,4 +54,4 @@ const advocates = pgTable("advocates", {
 
 type Advocate = InferSelectModel<typeof advocates>;
 
-export { advocates, specialties, type Advocate };
+export { advocates, specialties, type Advocate, type Specialty};

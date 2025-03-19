@@ -1,18 +1,19 @@
 "use client";
 
-import { Advocate } from "@/db/schema";
-import { ChangeEvent, useEffect, useState } from "react";
+import { Advocate, specialties, Specialty } from "@/db/schema";
+import { Autocomplete, TextField } from "@mui/material";
+import { useEffect, useState } from "react";
 
 export default function Home() {
   const [advocates, setAdvocates] = useState<Advocate[]>([]);
-  const [filteredAdvocates, setFilteredAdvocates] = useState<Advocate[]>([]);
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [specialtyFilters, setSpecialtyFilters] = useState<Specialty[]>([])
 
   useEffect(() => {
     console.log("fetching advocates...");
     fetch("/api/advocates").then((response) => {
       response.json().then((jsonResponse) => {
         setAdvocates(jsonResponse.data);
-        setFilteredAdvocates(jsonResponse.data);
       });
     });
   }, []);
@@ -22,35 +23,41 @@ export default function Home() {
     return `+1 (${phoneNumberStr.slice(0,3)}) ${phoneNumberStr.slice(3,6)}-${phoneNumberStr.slice(6)}`
   }
 
+  const filteredAdvocates = (() => {
     console.log("filtering advocates...");
-    const filteredAdvocates = advocates.filter((advocate) => {
-      const specialtiesSearchString = advocate.specialties.join(';').toLowerCase();
-      return (
-        advocate.firstName.toLowerCase().includes(searchTerm) ||
-        advocate.lastName.toLowerCase().includes(searchTerm) ||
-        advocate.city.toLowerCase().includes(searchTerm) ||
-        advocate.degree.toLowerCase().includes(searchTerm) ||
-        specialtiesSearchString.includes(searchTerm) ||
-        advocate.yearsOfExperience.toString().includes(searchTerm)
-      );
+    const term = searchTerm.toLowerCase();
+    return advocates.filter((advocate) => {
+      if (!(
+        advocate.firstName.toLowerCase().includes(term) ||
+        advocate.lastName.toLowerCase().includes(term) ||
+        advocate.city.toLowerCase().includes(term) ||
+        advocate.degree.toLowerCase().includes(term) ||
+        advocate.yearsOfExperience.toString().includes(term)
+      )) {
+        return false;
+      }
+      if (!specialtyFilters.every(sf => !sf || advocate.specialties.includes(sf))) {
+        return false;
+      }
+      return true;
     });
+  })()
 
-    setFilteredAdvocates(filteredAdvocates);
-  };
 
   return (
     <main style={{ margin: "24px" }}>
       <h1>Solace Advocates</h1>
       <br />
       <br />
-      <div>
-        <input style={{ border: "1px solid black" }} placeholder="Search" onChange={onChange} />
+      <div className="space-y-4">
+        <TextField placeholder="Search" value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+        <Autocomplete multiple options={specialties} renderInput={params => <TextField {...params} label="Specialties" />} value={specialtyFilters} onChange={(e, newValue) => {setSpecialtyFilters(newValue ?? [])}}></Autocomplete>
       </div>
       <br />
       <br />
       <table>
         <thead>
-          <tr>
+          <tr className="bg-gray-200 space-x-4">
             <th>First Name</th>
             <th>Last Name</th>
             <th>City</th>
