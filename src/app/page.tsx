@@ -17,8 +17,10 @@ export default function Home() {
     });
   }, []);
 
-  const onChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const searchTerm = e.target.value.toLowerCase();
+  const formatPhone = (phoneNumber: number): string => {
+    const phoneNumberStr = phoneNumber.toString();
+    return `+1 (${phoneNumberStr.slice(0,3)}) ${phoneNumberStr.slice(3,6)}-${phoneNumberStr.slice(6)}`
+  }
 
     console.log("filtering advocates...");
     const filteredAdvocates = advocates.filter((advocate) => {
@@ -59,9 +61,9 @@ export default function Home() {
           </tr>
         </thead>
         <tbody>
-          {filteredAdvocates.map((advocate) => {
+          {filteredAdvocates.map((advocate, index) => {
             return (
-              <tr key={advocate.id.toString()}>
+              <tr className={index % 2 > 0 ? 'bg-gray-100': 'white'} key={advocate.id.toString()}>
                 <td>{advocate.firstName}</td>
                 <td>{advocate.lastName}</td>
                 <td>{advocate.city}</td>
@@ -72,7 +74,7 @@ export default function Home() {
                   ))}
                 </td>
                 <td>{advocate.yearsOfExperience}</td>
-                <td>{advocate.phoneNumber}</td>
+                <td>{formatPhone(advocate.phoneNumber)}</td>
               </tr>
             );
           })}
